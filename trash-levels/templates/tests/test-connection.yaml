@@ -1,0 +1,15 @@
+apiVersion: v1
+kind: Pod
+metadata:
+  name: "{{ include "trash-levels.fullname" . }}-test-connection"
+  labels:
+{{ include "trash-levels.labels" . | nindent 4 }}
+  annotations:
+    "helm.sh/hook": test-success
+spec:
+  containers:
+    - name: wget
+      image: busybox
+      command: ['wget']
+      args:  ['-q', '-O', '-', '{{ include "trash-levels.fullname" . }}:{{ .Values.service.port }}/cans/25']
+  restartPolicy: Never
