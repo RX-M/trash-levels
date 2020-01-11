@@ -3,12 +3,12 @@ entries:
   trash-levels:
   - apiVersion: v2
     appVersion: 0.1.0
-    created: "2020-01-10T18:42:17.467755262-08:00"
+    created: "2020-01-11T12:59:42.473412844-08:00"
     description: A Helm chart for Kubernetes
     digest: f316cb99d460bd218c98d3ece978f4d1eceff0a7d8ec1ca8d60b55f93bcb0ac6
     name: trash-levels
     type: application
     urls:
-    - https://github.com/RX-M/trash-levels/trash-levels-0.1.0.tgz
+    - https://rx-m.github.com/trash-levels/trash-levels-0.1.0.tgz
     version: 0.1.0
-generated: "2020-01-10T18:42:17.466792197-08:00"
+generated: "2020-01-11T12:59:42.472454086-08:00"
