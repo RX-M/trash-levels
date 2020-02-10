@@ -1,12 +1,13 @@
 package main
 
 import (
-	mux "github.com/gorilla/mux"
-	"github.com/prometheus/client_golang/prometheus"
-	"github.com/prometheus/client_golang/prometheus/promhttp"
 	"log"
 	"net/http"
 	"strconv"
+
+	mux "github.com/gorilla/mux"
+	"github.com/prometheus/client_golang/prometheus"
+	"github.com/prometheus/client_golang/prometheus/promhttp"
 )
 
 type CanLevel struct {
@@ -14,14 +15,21 @@ type CanLevel struct {
 	Level int
 }
 
-var levels = make(map[string]int)
-
-var callCounter = prometheus.NewCounter(
-	prometheus.CounterOpts{
-		Namespace: "hello",
-		Name:      "call_counter",
-		Help:      "Number of calls made to all routes (including /healthz but not /metrics)",
-	})
+var (
+	levels      = make(map[string]int)
+	callCounter = prometheus.NewCounter(
+		prometheus.CounterOpts{
+			Namespace: "hello",
+			Name:      "call_counter",
+			Help:      "Number of calls made to all routes (including /healthz but not /metrics)",
+		})
+	memGague = prometheus.NewGauge(
+		prometheus.GaugeOpts{
+			Namespace: "hello",
+			Name:      "mem_gague",
+			Help:      "Amount of application memory currently allocated",
+		})
+)
 
 func levelHandler(w http.ResponseWriter, r *http.Request) {
 	id := mux.Vars(r)["id"]
@@ -47,9 +55,15 @@ func seedLevels() {
 	levels["30"] = 84
 }
 
+func allocUserMem() []int {
+	m := make([]int, 1024)
+	return m
+}
+
 func main() {
 	seedLevels()
 	prometheus.MustRegister(callCounter)
+	prometheus.MustRegister(memGague)
 
 	r := mux.NewRouter()
 	r.HandleFunc("/cans/{id}", levelHandler).Methods("GET")
