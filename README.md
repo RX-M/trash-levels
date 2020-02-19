@@ -896,7 +896,7 @@ The trash level service supports the following routes:
 
 -	/cans/{id}     //returns the can level by id
 -	/mem     //allocates 8MB of RAM
--       /kill     //causes health to return 503
+-	/kill     //causes health to return 503
 -	/healthz     //returns health
 -	/readyz     //returns ready false for 30 seconds then ready true
 -	/metrics     //returns openmetrics
@@ -911,4 +911,27 @@ func seedLevels() {
 	levels["25"] = 83
 	levels["30"] = 84
 }
+```
+
+Metrics:
+
+```go
+callCounter = prometheus.NewCounter(
+	prometheus.CounterOpts{
+		Namespace: "hello",
+		Name:      "call_counter",
+		Help:      "Number of calls made to all routes (including /healthz but not /metrics)",
+	})
+memGauge = prometheus.NewGauge(
+	prometheus.GaugeOpts{
+		Namespace: "hello",
+		Name:      "mem_gauge",
+		Help:      "Amount of application memory currently allocated",
+	})
+latSummary = prometheus.NewSummaryVec(
+	prometheus.SummaryOpts{
+		Namespace: "hello",
+		Name:      "lat_summary",
+		Help:      "Time to complete last cans call",
+	}, []string{"hello"})
 ```
