@@ -14,6 +14,7 @@ import (
 var (
 	levels      = make(map[string]int)
 	mem         = []int64{}
+	live        = true
 	ready       = false
 	callCounter = prometheus.NewCounter(
 		prometheus.CounterOpts{
@@ -21,23 +22,37 @@ var (
 			Name:      "call_counter",
 			Help:      "Number of calls made to all routes (including /healthz but not /metrics)",
 		})
-	memGague = prometheus.NewGauge(
+	memGauge = prometheus.NewGauge(
 		prometheus.GaugeOpts{
 			Namespace: "hello",
-			Name:      "mem_gague",
+			Name:      "mem_gauge",
 			Help:      "Amount of application memory currently allocated",
 		})
+	latSummary = prometheus.NewSummaryVec(
+		prometheus.SummaryOpts{
+			Namespace: "hello",
+			Name:      "lat_summary",
+			Help:      "Time to complete last cans call",
+		}, []string{"hello"})
 )
 
 func levelHandler(w http.ResponseWriter, r *http.Request) {
+	//Report call latency summary
+	start := time.Now()
+	defer func() { latSummary.WithLabelValues("duration").Observe(time.Since(start).Seconds()) }()
+
+	//Log call
 	id := mux.Vars(r)["id"]
 	log.Println("Responding to request for level: " + id)
+
 	//Taper mem alloc benefit after 10 allocations
 	mSize := len(mem)
 	if mSize > (5 * 1024 * 1024) {
-		mSize = (5 * 1024 * 1024) + (mSize-(5*1024*1024))/5
+		mSize = (5 * 1024 * 1024) + (mSize-(5*1024*1024))/10
 	}
 	time.Sleep(time.Duration((11*1024*1024)/(mSize+(1024*1024))) * time.Second)
+
+	//Return data
 	w.Header().Set("Content-Type", "application/json")
 	w.WriteHeader(http.StatusOK)
 	w.Write([]byte(`{"id": "` + id + `","level": ` + strconv.Itoa(levels[id]) + `}`))
@@ -54,14 +69,27 @@ func memHandler(w http.ResponseWriter, r *http.Request) {
 	w.Header().Set("Content-Type", "application/json")
 	w.WriteHeader(http.StatusOK)
 	w.Write([]byte(`{"message": "mem allocated!"}`))
-	memGague.Add(float64(8 * len(buf)))
+	memGauge.Add(float64(8 * len(buf)))
+	callCounter.Add(1)
+}
+
+func killHandler(w http.ResponseWriter, r *http.Request) {
+	live = false
+	w.Header().Set("Content-Type", "application/json")
+	w.WriteHeader(http.StatusOK)
+	w.Write([]byte(`{"message": "dead!"}`))
 	callCounter.Add(1)
 }
 
 func livenessHandler(w http.ResponseWriter, r *http.Request) {
 	w.Header().Set("Content-Type", "application/json")
-	w.WriteHeader(http.StatusOK)
-	w.Write([]byte(`{"message": "alive!"}`))
+	if live {
+		w.WriteHeader(http.StatusOK)
+		w.Write([]byte(`{"message": "alive!"}`))
+	} else {
+		w.WriteHeader(http.StatusServiceUnavailable)
+		w.Write([]byte(`{"message": "dead!"}`))
+	}
 	callCounter.Add(1)
 }
 
@@ -93,13 +121,15 @@ func startUp() {
 func main() {
 	seedLevels()
 	prometheus.MustRegister(callCounter)
-	prometheus.MustRegister(memGague)
+	prometheus.MustRegister(latSummary)
+	prometheus.MustRegister(memGauge)
 
 	r := mux.NewRouter()
 	r.HandleFunc("/cans/{id}", levelHandler).Methods("GET")
 	r.HandleFunc("/mem", memHandler).Methods("GET")
+	r.HandleFunc("/kill", killHandler).Methods("GET")
 	r.HandleFunc("/healthz", livenessHandler).Methods("GET")
-	r.HandleFunc("/readiz", readinessHandler).Methods("GET")
+	r.HandleFunc("/readyz", readinessHandler).Methods("GET")
 	r.Handle("/metrics", promhttp.Handler()).Methods("GET")
 
 	port := "8080"
