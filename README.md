@@ -136,6 +136,11 @@ user@ubuntu:~/trash-levels$ ll
 
 user@ubuntu:~/trash-levels$ go get github.com/gorilla/mux
 
+user@ubuntu:~/trash-levels$ go get github.com/prometheus/client_golang/prometheus
+
+user@ubuntu:~/trash-levels$ go get github.com/prometheus/client_golang/prometheus/promhttp
+
+user@ubuntu:~/trash-levels$ 
 ```
 
 

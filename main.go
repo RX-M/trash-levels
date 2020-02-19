@@ -1,7 +1,6 @@
 package main
 
 import (
-	"fmt"
 	"log"
 	"net/http"
 	"strconv"
@@ -16,14 +15,21 @@ type CanLevel struct {
 	Level int
 }
 
-var levels = make(map[string]int)
-
-var callCounter = prometheus.NewCounter(
-	prometheus.CounterOpts{
-		Namespace: "hello",
-		Name:      "call_counter",
-		Help:      "Number of calls made to all routes (including /healthz but not /metrics)",
-	})
+var (
+	levels      = make(map[string]int)
+	callCounter = prometheus.NewCounter(
+		prometheus.CounterOpts{
+			Namespace: "hello",
+			Name:      "call_counter",
+			Help:      "Number of calls made to all routes (including /healthz but not /metrics)",
+		})
+	memGague = prometheus.NewGauge(
+		prometheus.GaugeOpts{
+			Namespace: "hello",
+			Name:      "mem_gague",
+			Help:      "Amount of application memory currently allocated",
+		})
+)
 
 func levelHandler(w http.ResponseWriter, r *http.Request) {
 	id := mux.Vars(r)["id"]
@@ -35,12 +41,16 @@ func levelHandler(w http.ResponseWriter, r *http.Request) {
 }
 
 func livenessHandler(w http.ResponseWriter, r *http.Request) {
-	fmt.Fprintln(w, "alive!") //200 OK
+	w.Header().Set("Content-Type", "application/json")
+	w.WriteHeader(http.StatusOK)
+	w.Write([]byte(`{"message": "alive!"}`))
 	callCounter.Add(1)
 }
 
 func readinessHandler(w http.ResponseWriter, r *http.Request) {
-	fmt.Fprintln(w, "ready!") //200 OK
+	w.Header().Set("Content-Type", "application/json")
+	w.WriteHeader(http.StatusOK)
+	w.Write([]byte(`{"message": "ready!"}`))
 	callCounter.Add(1)
 }
 
@@ -52,9 +62,15 @@ func seedLevels() {
 	levels["30"] = 84
 }
 
+func allocUserMem() []int {
+	m := make([]int, 1024)
+	return m
+}
+
 func main() {
 	seedLevels()
 	prometheus.MustRegister(callCounter)
+	prometheus.MustRegister(memGague)
 
 	r := mux.NewRouter()
 	r.HandleFunc("/cans/{id}", levelHandler).Methods("GET")
