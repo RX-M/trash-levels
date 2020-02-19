@@ -889,3 +889,29 @@ pod "test-release-trash-levels-test-connection" deleted
 user@ubuntu:~/trash-levels/trash-levels$
 ```
 
+
+# Reference
+
+The trash level service supports the following routes:
+
+-	/cans/{id}
+-	/mem
+-	/healthz
+-	/readyz
+-	/metrics
+
+Only GET operations are supported. The cans array is preseeded as follows:
+
+```go
+func seedLevels() {
+	levels["10"] = 80
+	levels["15"] = 81
+	levels["20"] = 82
+	levels["25"] = 83
+	levels["30"] = 84
+}
+```
+
+Calling /mem allocates 8MB of RAM. 
+
+The service readiness probe, /readyz, returns false for 20 seconds after startup. 
