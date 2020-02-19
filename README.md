@@ -894,11 +894,12 @@ user@ubuntu:~/trash-levels/trash-levels$
 
 The trash level service supports the following routes:
 
--	/cans/{id}
--	/mem
--	/healthz
--	/readyz
--	/metrics
+-	/cans/{id}     //returns the can level by id
+-	/mem     //allocates 8MB of RAM
+-       /kill     //causes health to return 503
+-	/healthz     //returns health
+-	/readyz     //returns ready false for 30 seconds then ready true
+-	/metrics     //returns openmetrics
 
 Only GET operations are supported. The cans array is preseeded as follows:
 
@@ -911,7 +912,3 @@ func seedLevels() {
 	levels["30"] = 84
 }
 ```
-
-Calling /mem allocates 8MB of RAM. 
-
-The service readiness probe, /readyz, returns false for 20 seconds after startup. 
