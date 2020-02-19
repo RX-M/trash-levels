@@ -1,10 +1,14 @@
 package main
 
 import (
-	mux "github.com/gorilla/mux"
+	"fmt"
 	"log"
 	"net/http"
 	"strconv"
+
+	mux "github.com/gorilla/mux"
+	"github.com/prometheus/client_golang/prometheus"
+	"github.com/prometheus/client_golang/prometheus/promhttp"
 )
 
 type CanLevel struct {
@@ -14,12 +18,30 @@ type CanLevel struct {
 
 var levels = make(map[string]int)
 
+var callCounter = prometheus.NewCounter(
+	prometheus.CounterOpts{
+		Namespace: "hello",
+		Name:      "call_counter",
+		Help:      "Number of calls made to all routes (including /healthz but not /metrics)",
+	})
+
 func levelHandler(w http.ResponseWriter, r *http.Request) {
 	id := mux.Vars(r)["id"]
 	log.Println("Responding to request for level: " + id)
 	w.Header().Set("Content-Type", "application/json")
 	w.WriteHeader(http.StatusOK)
 	w.Write([]byte(`{"id": "` + id + `","level": ` + strconv.Itoa(levels[id]) + `}`))
+	callCounter.Add(1)
+}
+
+func livenessHandler(w http.ResponseWriter, r *http.Request) {
+	fmt.Fprintln(w, "alive!") //200 OK
+	callCounter.Add(1)
+}
+
+func readinessHandler(w http.ResponseWriter, r *http.Request) {
+	fmt.Fprintln(w, "ready!") //200 OK
+	callCounter.Add(1)
 }
 
 func seedLevels() {
@@ -32,9 +54,13 @@ func seedLevels() {
 
 func main() {
 	seedLevels()
+	prometheus.MustRegister(callCounter)
 
 	r := mux.NewRouter()
 	r.HandleFunc("/cans/{id}", levelHandler).Methods("GET")
+	r.HandleFunc("/healthz", livenessHandler).Methods("GET")
+	r.HandleFunc("/readiz", readinessHandler).Methods("GET")
+	r.Handle("/metrics", promhttp.Handler()).Methods("GET")
 
 	port := "8080"
 	log.Println("Listening on: " + port)
