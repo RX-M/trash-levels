@@ -936,7 +936,7 @@ latSummary = prometheus.NewSummaryVec(
 	}, []string{"hello"})
 ```
 
-###Examples
+### Examples
 
 Ready in 30 secs:
 
