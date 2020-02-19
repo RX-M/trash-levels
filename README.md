@@ -935,3 +935,135 @@ latSummary = prometheus.NewSummaryVec(
 		Help:      "Time to complete last cans call",
 	}, []string{"hello"})
 ```
+
+###Examples
+
+Ready in 30 secs:
+
+```
+$ curl -s -v localhost:8080/readyz
+
+{"message": "not ready!"}* timeout on name lookup is not supported
+*   Trying ::1...
+* TCP_NODELAY set
+* Connected to localhost (::1) port 8080 (#0)
+> GET /readyz HTTP/1.1
+> Host: localhost:8080
+> User-Agent: curl/7.55.0
+> Accept: */*
+>
+< HTTP/1.1 503 Service Unavailable
+< Content-Type: application/json
+< Date: Wed, 19 Feb 2020 04:18:40 GMT
+< Content-Length: 25
+<
+{ [25 bytes data]
+* Connection #0 to host localhost left intact
+
+$ curl -s -v localhost:8080/readyz
+
+{"message": "ready!"}* timeout on name lookup is not supported
+*   Trying ::1...
+* TCP_NODELAY set
+* Connected to localhost (::1) port 8080 (#0)
+> GET /readyz HTTP/1.1
+> Host: localhost:8080
+> User-Agent: curl/7.55.0
+> Accept: */*
+>
+< HTTP/1.1 200 OK
+< Content-Type: application/json
+< Date: Wed, 19 Feb 2020 04:19:02 GMT
+< Content-Length: 21
+<
+{ [21 bytes data]
+* Connection #0 to host localhost left intact
+
+$
+```
+
+Live and dead:
+
+```
+$ curl -s -v localhost:8080/healthz
+
+{"message": "alive!"}* timeout on name lookup is not supported
+*   Trying ::1...
+* TCP_NODELAY set
+* Connected to localhost (::1) port 8080 (#0)
+> GET /healthz HTTP/1.1
+> Host: localhost:8080
+> User-Agent: curl/7.55.0
+> Accept: */*
+>
+< HTTP/1.1 200 OK
+< Content-Type: application/json
+< Date: Wed, 19 Feb 2020 04:22:27 GMT
+< Content-Length: 21
+<
+{ [21 bytes data]
+* Connection #0 to host localhost left intact
+
+$ curl -s localhost:8080/kill
+
+{"message": "dead!"}
+
+$ curl -s -v localhost:8080/healthz
+
+{"message": "dead!"}* timeout on name lookup is not supported
+*   Trying ::1...
+* TCP_NODELAY set
+* Connected to localhost (::1) port 8080 (#0)
+> GET /healthz HTTP/1.1
+> Host: localhost:8080
+> User-Agent: curl/7.55.0
+> Accept: */*
+>
+< HTTP/1.1 503 Service Unavailable
+< Content-Type: application/json
+< Date: Wed, 19 Feb 2020 04:22:39 GMT
+< Content-Length: 20
+<
+{ [20 bytes data]
+* Connection #0 to host localhost left intact
+
+$
+```
+
+Metrics:
+
+```
+$ curl -s localhost:8080/metrics | grep hello | grep -v "^#"
+
+hello_call_counter 5
+hello_mem_gauge 0
+
+$ curl -s localhost:8080/cans/15
+{"id": "15","level": 81}
+
+$ curl -s localhost:8080/metrics | grep hello | grep -v "^#"
+
+hello_call_counter 6
+hello_lat_summary_sum{hello="duration"} 11.0001952
+hello_lat_summary_count{hello="duration"} 1
+hello_mem_gauge 0
+
+$
+```
+
+Memory:
+
+```
+$ curl -s localhost:8080/mem
+
+{"message": "mem allocated!"}
+
+$ curl -s localhost:8080/metrics | grep hello | grep -v "^#"
+
+hello_call_counter 7
+hello_lat_summary_sum{hello="duration"} 11.0001952
+hello_lat_summary_count{hello="duration"} 1
+hello_mem_gauge 8.388608e+06
+
+$
+```
