@@ -7,6 +7,7 @@ metadata:
     prometheus.io/scrape: "true" 
   labels:
     {{- include "trash-levels.labels" . | nindent 4 }}
+    app.kubernetes.io/component: ambassador-service
 spec:
   type: {{ .Values.service.type }}
   ports:
