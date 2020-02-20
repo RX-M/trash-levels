@@ -11,10 +11,10 @@ metadata:
     kubernetes.io/ingress.class: ambassador
 spec:
   rules:
-  {{- range .Values.ingress.hosts }}
     - http:
         paths:
-          - path: /
+          {{- range .Values.ingress.paths }}
+          - path: {{ .path }}
             backend:
               serviceName: {{ $fullName }}
               servicePort: {{ $svcPort }}
