@@ -7,13 +7,15 @@ metadata:
   name: {{ $fullName }}
   labels:
     {{- include "trash-levels.labels" . | nindent 4 }}
+  annotations:
+    kubernetes.io/ingress.class: ambassador
 spec:
   rules:
   {{- range .Values.ingress.hosts }}
-    - host: {{ .host | quote }}
-      http:
+    - http:
         paths:
-          - backend:
+          - path: /
+            backend:
               serviceName: {{ $fullName }}
               servicePort: {{ $svcPort }}
   {{- end }}
