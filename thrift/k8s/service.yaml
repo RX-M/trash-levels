@@ -1,0 +1,15 @@
+apiVersion: v1
+kind: Service
+metadata:
+  name: trash-levels
+  labels:
+    app: trash-levels
+    project: cicd-demo
+    vender: rx-m
+spec:
+  selector:
+    app: trash-levels
+  ports:
+    - protocol: TCP
+      port: 80
+      targetPort: 8080
