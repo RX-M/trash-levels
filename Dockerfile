@@ -1,6 +1,7 @@
-FROM golang:1.13 AS build-env
+FROM golang:1.16 AS build-env
 WORKDIR /go/src/trash-levels/
 COPY ./main.go /go/src/trash-levels/
+RUN go mod init example.com/trash-levels
 RUN go get github.com/gorilla/mux/
 RUN go get github.com/prometheus/client_golang/prometheus
 RUN go get github.com/prometheus/client_golang/prometheus/promhttp
@@ -14,3 +15,4 @@ LABEL org.label-schema.schema-version="1.1"
 COPY --from=build-env /go/src/trash-levels/trash-levels trash-levels
 EXPOSE 8080
 ENTRYPOINT ["./trash-levels"]
+
