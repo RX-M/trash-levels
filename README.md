@@ -94,9 +94,9 @@ You could of course just run go in containers all the time, but its nice to be a
 primary language and dev is your primary thing.
 
 ```
-user@ubuntu:~$ curl -sLO https://dl.google.com/go/go1.13.linux-amd64.tar.gz
+user@ubuntu:~$ curl -sLO https://dl.google.com/go/go1.16.linux-amd64.tar.gz
 
-user@ubuntu:~$ tar zxf go1.13.linux-amd64.tar.gz
+user@ubuntu:~$ tar zxf go1.16.linux-amd64.tar.gz
 
 user@ubuntu:~$ sudo mv ~/go/ /usr/local/
 
@@ -108,7 +108,7 @@ user@ubuntu:~$ source ~/.bash_profile
 
 user@ubuntu:~$ go version
 
-go version go1.13 linux/amd64
+go version go1.16 linux/amd64
 
 user@ubuntu:~$
 ```
@@ -131,8 +131,7 @@ Checking connectivity... done.
 
 user@ubuntu:~$ cd trash-levels/
 
-user@ubuntu:~/trash-levels$ ll
-
+user@ubuntu:~/trash-levels$ go mod init example.com/trash-levels
 
 user@ubuntu:~/trash-levels$ go get github.com/gorilla/mux
 
