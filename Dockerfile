@@ -1,4 +1,4 @@
-FROM golang:1.17 AS build-env
+FROM golang:1.21 AS build-env
 WORKDIR /go/src/trash-levels/
 COPY ./main.go /go/src/trash-levels/
 RUN go mod init example.com/trash-levels
